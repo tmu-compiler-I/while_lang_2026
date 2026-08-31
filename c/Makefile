@@ -2,16 +2,19 @@ CC ?= cc
 CFLAGS ?= -std=c11 -Wall -Wextra -g
 INCLUDES = -I.
 
-FRONT = util.o syntax.o lexer.o parser.o interpret.o
+BASE = util.o syntax.o lexer.o parser.o
 
 .PHONY: all test test-answer clean
 
-all: whilec test_day
+all: whilec whilei test_day
 
-whilec: $(FRONT) virtual_stack.o emit_wasm.o whilec.o
+whilec: $(BASE) virtual_stack.o emit_wasm.o whilec.o
 	$(CC) $(CFLAGS) -o $@ $^
 
-test_day: $(FRONT) virtual_stack.o emit_wasm.o test_day.o
+whilei: $(BASE) interpret.o virtual_stack.o whilei.o
+	$(CC) $(CFLAGS) -o $@ $^
+
+test_day: $(BASE) interpret.o virtual_stack.o emit_wasm.o test_day.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 %.o: %.c
@@ -23,9 +26,9 @@ answer/%.o: answer/%.c
 test: test_day
 	./test_day
 
-test-answer: $(FRONT) answer/virtual_stack.o answer/emit_wasm.o test_day.o
+test-answer: $(BASE) interpret.o answer/virtual_stack.o answer/emit_wasm.o test_day.o
 	$(CC) $(CFLAGS) -o test_day_answer $^
 	./test_day_answer
 
 clean:
-	rm -f *.o whilec test_day test_day_answer answer/*.o
+	rm -f *.o whilec whilei test_day test_day_answer answer/*.o

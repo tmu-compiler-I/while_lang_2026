@@ -1,5 +1,4 @@
 #include "emit_wasm.h"
-#include "interpret.h"
 #include "lexer.h"
 #include "parser.h"
 #include "syntax.h"
@@ -10,12 +9,12 @@
 #include <string.h>
 
 static int usage(const char *argv0) {
-    fprintf(stderr, "[usage] %s [--ast|--stack|--run] [-o out.wat] file.while\n", argv0);
+    fprintf(stderr, "[usage] %s [--ast|--stack] [-o out.wat] file.while\n", argv0);
     return 1;
 }
 
 int main(int argc, char **argv) {
-    int ast = 0, stack = 0, run = 0;
+    int ast = 0, stack = 0;
     const char *outpath = NULL;
     const char *srcpath = NULL;
     for (int i = 1; i < argc; i++) {
@@ -23,8 +22,6 @@ int main(int argc, char **argv) {
             ast = 1;
         else if (!strcmp(argv[i], "--stack"))
             stack = 1;
-        else if (!strcmp(argv[i], "--run"))
-            run = 1;
         else if (!strcmp(argv[i], "-o") || !strcmp(argv[i], "--output")) {
             if (++i >= argc)
                 return usage(argv[0]);
@@ -53,10 +50,6 @@ int main(int argc, char **argv) {
     }
     if (stack) {
         fputs(format_code(code), stdout);
-        return 0;
-    }
-    if (run) {
-        interpret(code, 0);
         return 0;
     }
 

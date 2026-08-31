@@ -10,7 +10,8 @@ WHILE を WebAssembly (`.wat`) へコンパイルします。
 
 ```bash
 make
-./whilec --run ../test/assign.while
+./whilei ../test/assign.while    # 仮想スタック機械で実行
+./whilec ../test/assign.while    # .wat を出力
 make test
 ```
 

@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""WHILE 言語コンパイラのエントリポイント
+"""WHILE 言語コンパイラのエントリポイント。
 
     python whilec.py ../test/assign.while           # .wat を出力
     python whilec.py --stack ../test/assign.while   # 仮想スタック命令を表示
-    python whilec.py --run ../test/assign.while     # 仮想機械で実行
     python whilec.py --ast ../test/assign.while     # AST を表示
 """
 
@@ -14,7 +13,6 @@ import sys
 from pathlib import Path
 
 from emit_wasm import emit_wat
-from interpret import interpret
 from lexer import tokenize
 from parser import parse
 from syntax import string_of_stmt
@@ -32,7 +30,6 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("source", help=".while ファイル")
     ap.add_argument("--ast", action="store_true", help="構文木を表示する")
     ap.add_argument("--stack", action="store_true", help="仮想スタック命令を表示する")
-    ap.add_argument("--run", action="store_true", help="仮想スタック命令を実行する")
     ap.add_argument("-o", "--output", help="出力 .wat のパス")
     args = ap.parse_args(argv)
 
@@ -54,10 +51,6 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.stack:
         print(format_code(code), end="")
-        return 0
-
-    if args.run:
-        interpret(code)
         return 0
 
     wat = emit_wat(code)

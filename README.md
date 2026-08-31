@@ -17,16 +17,16 @@ WHILE 言語を WebAssembly テキスト形式 (`.wat`) へ翻訳するコンパ
 Python 実装の場合:
 
 ```bash
-# Python
 cd python
-python3 whilec.py --run ../test/assign.while
+python3 whilei.py ../test/assign.while     # 仮想スタック機械で実行
+python3 whilec.py ../test/assign.while     # .wat を出力
 ```
 
 C 実装の場合:
 
-```
-# C
+```bash
 cd c
 make
-./whilec --run ../test/assign.while
+./whilei ../test/assign.while              # 仮想スタック機械で実行
+./whilec ../test/assign.while              # .wat を出力
 ```

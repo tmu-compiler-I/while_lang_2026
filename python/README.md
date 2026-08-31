@@ -17,7 +17,7 @@ python3 test_day.py  # 構文解析と assign は通る
 ## 最初に動かす
 
 ```bash
-python3 whilec.py --run ../test/assign.while
+python3 whilei.py ../test/assign.while
 # 3
 
 python3 whilec.py --stack ../test/assign.while
@@ -26,7 +26,7 @@ python3 whilec.py ../test/assign.while
 ```
 
 `.wat` は https://www.yuiza.org/wonline にドロップするとブラウザで実行できます。
-`--run` は Wasm を使わず仮想スタック命令を実行します。デバッグはこちらが速いです。
+`whilei.py` は Wasm を使わず仮想スタック命令を実行します。デバッグはこちらが速いです。
 
 ```bash
 python3 test_day.py
@@ -171,7 +171,7 @@ while は次の形になります (生成コードは配布済みです)。
 `Sub` / `Mul` / `Div` を仮想スタック命令へ翻訳し、対応する Wasm (`i32.sub`, `i32.mul`, `i32.div_s`) を出力する。
 
 ```bash
-python3 whilec.py --run ../test/arith.while
+python3 whilei.py ../test/arith.while
 # 7
 # 8
 # 4
@@ -185,7 +185,7 @@ python3 whilec.py --run ../test/arith.while
 `GT` / `GE` / `LE` / `EQ` を翻訳し、`i32.gt_s` / `ge_s` / `le_s` / `eq` を出力する。
 
 ```bash
-python3 whilec.py --run ../test/cmp.while
+python3 whilei.py ../test/cmp.while
 # 1 1 0 1 1 0
 ```
 
@@ -198,10 +198,10 @@ python3 whilec.py --run ../test/cmp.while
 `virtual_stack.py` の `While` 節に、部品を並べるためのコメントがあります。上の翻訳例と同じ順になるように組み立ててください。
 
 ```bash
-python3 whilec.py --run ../test/simple_loop.while
+python3 whilei.py ../test/simple_loop.while
 # 10
 
-python3 whilec.py --run ../test/fact.while
+python3 whilei.py ../test/fact.while
 # 120
 ```
 
@@ -212,7 +212,7 @@ python3 whilec.py --run ../test/fact.while
 時間が余ったら `If` を実装してください。条件のあとに `IfStart()`、then 節、`ElseOp()`、else 節、`IfEnd()` です。Wasm の `if` / `else` / `end` は配布済みです。
 
 ```bash
-python3 whilec.py --run ../test/ifstmt.while
+python3 whilei.py ../test/ifstmt.while
 # 1
 ```
 
@@ -226,7 +226,8 @@ python3 whilec.py --run ../test/ifstmt.while
 | `virtual_stack.py` | 構文木 → 仮想スタック命令 (**課題**) |
 | `emit_wasm.py` | 仮想スタック命令 → WAT (**課題**) |
 | `interpret.py` | 仮想スタック命令の実行 (配布) |
-| `whilec.py` | コマンドライン |
+| `whilec.py` | コンパイラ (`.wat` / `--ast` / `--stack`) |
+| `whilei.py` | 仮想スタック機械で実行 |
 | `test_day.py` | 進捗確認 |
 
 ## コマンド
@@ -234,6 +235,6 @@ python3 whilec.py --run ../test/ifstmt.while
 ```bash
 python3 whilec.py --ast ../test/assign.while
 python3 whilec.py --stack ../test/assign.while
-python3 whilec.py --run ../test/assign.while
 python3 whilec.py -o out.wat ../test/assign.while
+python3 whilei.py ../test/assign.while
 ```

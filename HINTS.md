@@ -6,7 +6,7 @@ Python は `python/`、C は `c/` で作業します。命令名の対応は末�
 
 ## まず確認すること
 
-1. 配布されたコードそのままの状態で `../test/assign.while` が `--run` で `3` を出すこと
+1. 配布されたコードそのままの状態で `python3 whilei.py ../test/assign.while`（C なら `./whilei ../test/assign.while`）が `3` を出すこと
 2. 触ってよいのは `virtual_stack` と `emit_wasm` だけ。パーサは動かさない
 3. デバッグは次の順で行うと効率的
 
@@ -14,19 +14,19 @@ Python は `python/`、C は `c/` で作業します。命令名の対応は末�
 # Python (`python/` で)
 python3 whilec.py --ast ../test/arith.while
 python3 whilec.py --stack ../test/arith.while
-python3 whilec.py --run ../test/arith.while
+python3 whilei.py ../test/arith.while
 python3 test_day.py
 
 # C (`c/` で)
 ./whilec --ast ../test/arith.while
 ./whilec --stack ../test/arith.while
-./whilec --run ../test/arith.while
+./whilei ../test/arith.while
 make test
 ```
 
   - `--ast` で木が期待どおりならパーサは正しいので、翻訳側 (自分の実装) を疑う
   - `--stack` で命令列を見て、README の翻訳例と同じ並びかを先に確認する
-  - Wasm の前に `--run` が通ることをチェック
+  - Wasm の前に `whilei` が通ることをチェック
 
 ---
 
@@ -94,7 +94,7 @@ README の翻訳例と、`virtual_stack` の `While` にあるコメントの部
 ### 確認
 
 ```bash
-python3 whilec.py --run ../test/simple_loop.while
+python3 whilei.py ../test/simple_loop.while
 # 10
 ```
 

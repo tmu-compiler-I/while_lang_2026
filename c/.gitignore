@@ -1,5 +1,6 @@
 *.o
 whilec
+whilei
 test_day
 test_day_answer
 *.wat
