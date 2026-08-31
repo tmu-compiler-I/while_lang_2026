@@ -25,8 +25,9 @@ python3 whilec.py ../test/assign.while
 # wrote ../test/assign.wat
 ```
 
-`.wat` は https://www.yuiza.org/wonline にドロップするとブラウザで実行できます。
-`whilei.py` は Wasm を使わず仮想スタック命令を実行します。デバッグはこちらが速いです。
+`.wat` は https://3tty0n.github.io/wonline にドロップするとブラウザで実行できます。
+
+`whilei.py` は Wasm を使わず仮想スタック命令を実行します。デバッグはこちらも使用できます。
 
 ```bash
 python3 test_day.py
