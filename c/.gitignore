@@ -1,0 +1,5 @@
+*.o
+whilec
+test_day
+test_day_answer
+*.wat

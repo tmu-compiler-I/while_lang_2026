@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_Store
+*.wat
+!test/expected/*.wat
+.venv/
+venv/
+
+
+answer/
+INSTRUCTOR.md
