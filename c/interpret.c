@@ -50,7 +50,28 @@ static int find_label(Code prog, const char *name) {
     return -1;
 }
 
-Ints interpret(Code prog, int quiet) {
+static void dump_trace(int pc, Instr ins, uint32_t *stack, int sp, Cell *env, int nenv) {
+    char *op = format_instr(ins);
+    for (char *p = op; *p; p++)
+        if (*p == '\t')
+            *p = ' ';
+    fprintf(stderr, "%4d  %-16s  stack=[", pc, op);
+    for (int i = 0; i < sp; i++) {
+        if (i)
+            fputs(", ", stderr);
+        fprintf(stderr, "%d", (int)to_signed(stack[i]));
+    }
+    fprintf(stderr, "]  env={");
+    for (int i = 0; i < nenv; i++) {
+        if (i)
+            fputs(", ", stderr);
+        fprintf(stderr, "%s=%d", env[i].name, (int)to_signed(env[i].val));
+    }
+    fprintf(stderr, "}\n");
+    fflush(stderr);
+}
+
+Ints interpret(Code prog, int quiet, int trace) {
     uint32_t stack[256];
     int sp = 0;
     Cell env[64];
@@ -62,7 +83,10 @@ Ints interpret(Code prog, int quiet) {
     int pc = 0;
     while (pc < prog.n) {
         Instr ins = prog.data[pc];
+        int jumped = 0;
         uint32_t a, b;
+        if (trace)
+            dump_trace(pc, ins, stack, sp, env, nenv);
         switch (ins.kind) {
         case I_PUSH:
             stack[sp++] = i32(ins.n);
@@ -144,8 +168,10 @@ Ints interpret(Code prog, int quiet) {
         case I_PRINT: {
             int32_t v = to_signed(POP());
             ints_push(&printed, v);
-            if (!quiet)
+            if (!quiet) {
                 printf("%d\n", v);
+                fflush(stdout);
+            }
             break;
         }
         case I_LABEL_TEST:
@@ -154,12 +180,13 @@ Ints interpret(Code prog, int quiet) {
         case I_GOFALSE:
             if (POP() == 0) {
                 pc = find_label(prog, ins.name);
-                continue;
+                jumped = 1;
             }
             break;
         case I_GOTO:
             pc = find_label(prog, ins.name);
-            continue;
+            jumped = 1;
+            break;
         case I_IF_START:
             if (POP() == 0) {
                 int depth = 1;
@@ -201,7 +228,8 @@ Ints interpret(Code prog, int quiet) {
         case I_IF_END:
             break;
         }
-        pc++;
+        if (!jumped)
+            pc++;
     }
 #undef POP
     return printed;

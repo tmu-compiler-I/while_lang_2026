@@ -19,6 +19,7 @@ Python 実装の場合:
 ```bash
 cd python
 python3 whilei.py ../test/assign.while     # 仮想スタック機械で実行
+python3 whilei.py --trace ../test/assign.while
 python3 whilec.py ../test/assign.while     # .wat を出力
 ```
 
@@ -28,5 +29,6 @@ C 実装の場合:
 cd c
 make
 ./whilei ../test/assign.while              # 仮想スタック機械で実行
+./whilei --trace ../test/assign.while
 ./whilec ../test/assign.while              # .wat を出力
 ```

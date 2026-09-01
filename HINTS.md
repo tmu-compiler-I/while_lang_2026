@@ -14,18 +14,21 @@ Python は `python/`、C は `c/` で作業します。命令名の対応は末�
 # Python (`python/` で)
 python3 whilec.py --ast ../test/arith.while
 python3 whilec.py --stack ../test/arith.while
+python3 whilei.py --trace ../test/arith.while
 python3 whilei.py ../test/arith.while
 python3 test_day.py
 
 # C (`c/` で)
 ./whilec --ast ../test/arith.while
 ./whilec --stack ../test/arith.while
+./whilei --trace ../test/arith.while
 ./whilei ../test/arith.while
 make test
 ```
 
   - `--ast` で木が期待どおりならパーサは正しいので、翻訳側 (自分の実装) を疑う
   - `--stack` で命令列を見て、README の翻訳例と同じ並びかを先に確認する
+  - `--trace` で各命令の直前のスタック (右が先頭) と変数を確認する。引き算の左右が逆だとここで分かる
   - Wasm の前に `whilei` が通ることをチェック
 
 ---

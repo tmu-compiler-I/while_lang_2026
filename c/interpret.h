@@ -8,7 +8,7 @@ typedef struct {
     int n;
 } Ints;
 
-/* quiet が非0なら print を stdout に出さない。戻り値は出力された値。 */
-Ints interpret(Code prog, int quiet);
+/* quiet が非0なら print を stdout に出さない。trace が非0なら各命令後の状態を stderr に出す。 */
+Ints interpret(Code prog, int quiet, int trace);
 
 #endif

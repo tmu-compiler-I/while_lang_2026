@@ -43,7 +43,7 @@ static Ints compile_run_src(const char *src, int want_wat) {
         empty.data = (int *)todo; /* 借用 */
         return empty;
     }
-    Ints out = interpret(code, 1);
+    Ints out = interpret(code, 1, 0);
     if (want_wat) {
         emit_wat(code);
         todo = take_todo();

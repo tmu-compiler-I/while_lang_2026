@@ -20,6 +20,7 @@ python3 test_day.py  # 構文解析と assign は通る
 python3 whilei.py ../test/assign.while
 # 3
 
+python3 whilei.py --trace ../test/assign.while   # 命令・スタック・変数を1ステップずつ
 python3 whilec.py --stack ../test/assign.while
 python3 whilec.py ../test/assign.while
 # wrote ../test/assign.wat
@@ -27,7 +28,7 @@ python3 whilec.py ../test/assign.while
 
 `.wat` は https://3tty0n.github.io/wonline にドロップするとブラウザで実行できます。
 
-`whilei.py` は Wasm を使わず仮想スタック命令を実行します。デバッグはこちらも使用できます。
+`whilei.py` は Wasm を使わず仮想スタック命令を実行します。デバッグは `--trace` でスタックと変数の変化を追えます。
 
 ```bash
 python3 test_day.py
@@ -228,7 +229,7 @@ python3 whilei.py ../test/ifstmt.while
 | `emit_wasm.py` | 仮想スタック命令 → WAT (**課題**) |
 | `interpret.py` | 仮想スタック命令の実行 (配布) |
 | `whilec.py` | コンパイラ (`.wat` / `--ast` / `--stack`) |
-| `whilei.py` | 仮想スタック機械で実行 |
+| `whilei.py` | 仮想スタック機械で実行 (`--trace` で可視化) |
 | `test_day.py` | 進捗確認 |
 
 ## コマンド
@@ -238,4 +239,5 @@ python3 whilec.py --ast ../test/assign.while
 python3 whilec.py --stack ../test/assign.while
 python3 whilec.py -o out.wat ../test/assign.while
 python3 whilei.py ../test/assign.while
+python3 whilei.py --trace ../test/assign.while
 ```

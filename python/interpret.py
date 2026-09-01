@@ -5,6 +5,8 @@ Wasm ランタイムが無くても、翻訳結果が正しいか確認できる
 
 from __future__ import annotations
 
+import sys
+
 from virtual_stack import (
     AndOp,
     Divide,
@@ -32,6 +34,7 @@ from virtual_stack import (
     RValue,
     Times,
     TrueOp,
+    format_instr,
 )
 
 
@@ -48,7 +51,14 @@ def _signed(n: int) -> int:
     return n - 0x100000000 if n >= 0x80000000 else n
 
 
-def interpret(prog: list[Instr], quiet: bool = False) -> list[int]:
+def _dump_trace(pc: int, ins: Instr, stack: list[int], env: dict[str, int]) -> None:
+    op = format_instr(ins).replace("\t", " ")
+    st = "[" + ", ".join(str(_signed(x)) for x in stack) + "]"
+    ev = ", ".join(f"{k}={_signed(v)}" for k, v in sorted(env.items()))
+    print(f"{pc:4d}  {op:<16}  stack={st}  env={{{ev}}}", file=sys.stderr, flush=True)
+
+
+def interpret(prog: list[Instr], quiet: bool = False, trace: bool = False) -> list[int]:
     labels: dict[str, int] = {}
     for i, ins in enumerate(prog):
         match ins:
@@ -71,6 +81,9 @@ def interpret(prog: list[Instr], quiet: bool = False) -> list[int]:
 
     while pc < len(prog):
         ins = prog[pc]
+        if trace:
+            _dump_trace(pc, ins, stack, env)
+        jumped = False
         match ins:
             case Push(n):
                 stack.append(_i32(n))
@@ -129,10 +142,10 @@ def interpret(prog: list[Instr], quiet: bool = False) -> list[int]:
             case GoFalse(label):
                 if pop() == 0:
                     pc = labels[label]
-                    continue
+                    jumped = True
             case GoTo(label):
                 pc = labels[label]
-                continue
+                jumped = True
             case IfStart():
                 if pop() == 0:
                     # else まで飛ばす
@@ -172,6 +185,7 @@ def interpret(prog: list[Instr], quiet: bool = False) -> list[int]:
                 pass
             case _:
                 raise InterpretError(f"未対応の命令: {ins!r}")
-        pc += 1
+        if not jumped:
+            pc += 1
 
     return printed

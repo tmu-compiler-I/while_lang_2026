@@ -8,11 +8,22 @@
 #include <string.h>
 
 int main(int argc, char **argv) {
-    if (argc != 2) {
-        fprintf(stderr, "[usage] %s file.while\n", argv[0]);
+    int trace = 0;
+    const char *srcpath = NULL;
+    for (int i = 1; i < argc; i++) {
+        if (!strcmp(argv[i], "--trace"))
+            trace = 1;
+        else if (argv[i][0] == '-') {
+            fprintf(stderr, "[usage] %s [--trace] file.while\n", argv[0]);
+            return 1;
+        } else
+            srcpath = argv[i];
+    }
+    if (!srcpath) {
+        fprintf(stderr, "[usage] %s [--trace] file.while\n", argv[0]);
         return 1;
     }
-    char *src = xread_file(argv[1]);
+    char *src = xread_file(srcpath);
     Stmt *tree = parse(tokenize(src));
     clear_todo();
     Code code = compile_stack(tree);
@@ -21,6 +32,6 @@ int main(int argc, char **argv) {
         fprintf(stderr, "error: %s\n", todo);
         return 1;
     }
-    interpret(code, 0);
+    interpret(code, 0, trace);
     return 0;
 }
