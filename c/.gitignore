@@ -1,6 +1,8 @@
 *.o
+*.obj
+*.exe
 whilec
 whilei
-test_day
-test_day_answer
+test_whilelang
+test_whilelang_answer
 *.wat

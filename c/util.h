@@ -8,8 +8,9 @@ void *xmalloc(size_t n);
 char *xstrdup(const char *s);
 char *xread_file(const char *path);
 void die(const char *fmt, ...);
+void init_console(void);
 
-/* 課題の未実装。whilec / test_day がメッセージを拾う。 */
+/* 課題の未実装。whilec / test_whilelang がメッセージを拾う。 */
 void not_implemented(const char *msg);
 const char *take_todo(void);
 void clear_todo(void);

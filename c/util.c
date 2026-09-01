@@ -3,9 +3,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 static const char *g_todo;
+
+void init_console(void) {
+#ifdef _WIN32
+    SetConsoleOutputCP(65001);
+#endif
+}
 
 void *xmalloc(size_t n) {
     void *p = calloc(1, n ? n : 1);
@@ -104,11 +113,17 @@ char *buf_take(Buf *b) {
 const char *test_path(const char *name) {
     static char buf[512];
     snprintf(buf, sizeof buf, "../test/%s", name);
-    if (access(buf, R_OK) == 0)
+    FILE *f = fopen(buf, "rb");
+    if (f) {
+        fclose(f);
         return buf;
+    }
     snprintf(buf, sizeof buf, "test/%s", name);
-    if (access(buf, R_OK) == 0)
+    f = fopen(buf, "rb");
+    if (f) {
+        fclose(f);
         return buf;
+    }
     snprintf(buf, sizeof buf, "c/../test/%s", name);
     return buf;
 }

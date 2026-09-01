@@ -8,6 +8,7 @@
 #include <string.h>
 
 int main(int argc, char **argv) {
+    init_console();
     int trace = 0;
     const char *srcpath = NULL;
     for (int i = 1; i < argc; i++) {

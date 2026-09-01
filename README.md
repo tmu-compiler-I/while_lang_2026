@@ -1,8 +1,8 @@
 # コンパイラ演習 2026 (情報システム実験 I)
 
-## WHILE言語からWebAssemblyへのコンパイラ実装演習
+## WhileLang から WebAssembly へのコンパイラ実装演習
 
-WHILE 言語を WebAssembly テキスト形式 (`.wat`) へ翻訳するコンパイラを、**Python** か **C** で組み立てます。
+WhileLang を WebAssembly テキスト形式 (`.wat`) へ翻訳するコンパイラを、**Python** か **C** で組み立てます。
 最初に一方を選び、途中で混ぜないでください。どちらを選んでも課題は同じです。
 
 | ディレクトリ | 内容 |
@@ -32,3 +32,5 @@ make
 ./whilei --trace ../test/assign.while
 ./whilec ../test/assign.while              # .wat を出力
 ```
+
+Windows のコマンドプロンプト / PowerShell では、Python は `py -3`、C は `c` ディレクトリで `build.bat` のあと `.\whilei ..\test\assign.while` です。Git Bash なら上の Unix コマンドのままで動きます。

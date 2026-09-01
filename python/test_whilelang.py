@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""課題の進捗確認。
+"""WhileLang の進捗確認。
 
-    python test_day.py            # 学生提出コードを検査
-    python test_day.py --answer   # 講師用: answer/ を検査
+    python test_whilelang.py            # 学生提出コードを検査
+    python test_whilelang.py --answer  # 講師用: answer/ を検査
 """
 
 from __future__ import annotations
@@ -117,7 +117,7 @@ def main() -> int:
     print("[課題1 算術演算]")
 
     def t_arith():
-        src = Path(TEST / "arith.while").read_text()
+        src = Path(TEST / "arith.while").read_text(encoding="utf-8")
         out = compile_run(tokenize, parse, compile_stack, interpret, src)
         assert out == [7, 8, 4, 23], out
         emit_wat(compile_stack(parse(tokenize(src))))
@@ -127,7 +127,7 @@ def main() -> int:
     print("[課題2 比較演算]")
 
     def t_cmp():
-        src = Path(TEST / "cmp.while").read_text()
+        src = Path(TEST / "cmp.while").read_text(encoding="utf-8")
         out = compile_run(tokenize, parse, compile_stack, interpret, src)
         assert out == [1, 1, 0, 1, 1, 0], out
         emit_wat(compile_stack(parse(tokenize(src))))
@@ -137,22 +137,22 @@ def main() -> int:
     print("[課題3 while / begin-end]")
 
     def t_loop():
-        src = Path(TEST / "simple_loop.while").read_text()
+        src = Path(TEST / "simple_loop.while").read_text(encoding="utf-8")
         out = compile_run(tokenize, parse, compile_stack, interpret, src)
         assert out == [10], out
 
     def t_nested():
-        src = Path(TEST / "loop.while").read_text()
+        src = Path(TEST / "loop.while").read_text(encoding="utf-8")
         out = compile_run(tokenize, parse, compile_stack, interpret, src)
         assert out == list(range(1, 11)) * 10 + [10, 10], out
 
     def t_fact():
-        src = Path(TEST / "fact.while").read_text()
+        src = Path(TEST / "fact.while").read_text(encoding="utf-8")
         out = compile_run(tokenize, parse, compile_stack, interpret, src)
         assert out == [120], out
 
     def t_assign_run():
-        src = Path(TEST / "assign.while").read_text()
+        src = Path(TEST / "assign.while").read_text(encoding="utf-8")
         out = compile_run(tokenize, parse, compile_stack, interpret, src)
         assert out == [3], out
         wat = emit_wat(compile_stack(parse(tokenize(src))))
@@ -167,7 +167,7 @@ def main() -> int:
     print("[発展 if]")
 
     def t_if():
-        src = Path(TEST / "ifstmt.while").read_text()
+        src = Path(TEST / "ifstmt.while").read_text(encoding="utf-8")
         out = compile_run(tokenize, parse, compile_stack, interpret, src)
         assert out == [1], out
 

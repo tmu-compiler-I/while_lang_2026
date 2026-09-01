@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WHILE 言語コンパイラのエントリポイント。
+"""WhileLang コンパイラのエントリポイント。
 
     python whilec.py ../test/assign.while           # .wat を出力
     python whilec.py --stack ../test/assign.while   # 仮想スタック命令を表示
@@ -26,7 +26,7 @@ def compile_source(src: str):
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="WHILE to WebAssembly コンパイラ")
+    ap = argparse.ArgumentParser(description="WhileLang to WebAssembly コンパイラ")
     ap.add_argument("source", help=".while ファイル")
     ap.add_argument("--ast", action="store_true", help="構文木を表示する")
     ap.add_argument("--stack", action="store_true", help="仮想スタック命令を表示する")

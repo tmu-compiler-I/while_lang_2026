@@ -3,6 +3,7 @@
 詰まったら上から。読んでください。
 
 Python は `python/`、C は `c/` で作業します。命令名の対応は末尾の表です。
+Windows では `python3` の代わりに `py -3`、C は `./whilei` ではなく `whilei`（または `.\whilei.exe`）です。
 
 ## まず確認すること
 
@@ -16,7 +17,7 @@ python3 whilec.py --ast ../test/arith.while
 python3 whilec.py --stack ../test/arith.while
 python3 whilei.py --trace ../test/arith.while
 python3 whilei.py ../test/arith.while
-python3 test_day.py
+python3 test_whilelang.py
 
 # C (`c/` で)
 ./whilec --ast ../test/arith.while

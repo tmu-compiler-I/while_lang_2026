@@ -1,4 +1,4 @@
-"""While の AST を、スタック機械の命令列へ変換する。
+"""WhileLang の AST を、スタック機械の命令列へ変換する。
 
 課題 1〜3 はここの NotImplementedError を埋めること。
 """

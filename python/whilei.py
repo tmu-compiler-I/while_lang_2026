@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""仮想スタック機械で WHILE プログラムを実行する。
+"""仮想スタック機械で WhileLang プログラムを実行する。
 
     python whilei.py ../test/assign.while
     python whilei.py --trace ../test/assign.while

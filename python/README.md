@@ -1,17 +1,17 @@
 # Python 実装
 
-WHILE を WebAssembly (`.wat`) へ翻訳します。字句解析と構文解析は配布済みです。
+WhileLang を WebAssembly (`.wat`) へ翻訳します。字句解析と構文解析は配布済みです。
 今日書くのは、構文木 → 仮想スタック命令 → Wasm です。
 
 入力プログラムは `../test/*.while` です。C 版は [`../c/`](../c/) にあります。
 
 ## 準備
 
-Python 3.10 以降。追加ライブラリは不要です。Windows では WSL を推奨します。
+Python 3.10 以降。追加ライブラリは不要です。Windows なら `python` か `py -3` で同じです。
 
 ```bash
 python3 --version    # 3.10 以上 (match 文)
-python3 test_day.py  # 構文解析と assign は通る
+python3 test_whilelang.py  # 構文解析と assign は通る
 ```
 
 ## 最初に動かす
@@ -31,12 +31,12 @@ python3 whilec.py ../test/assign.while
 `whilei.py` は Wasm を使わず仮想スタック命令を実行します。デバッグは `--trace` でスタックと変数の変化を追えます。
 
 ```bash
-python3 test_day.py
+python3 test_whilelang.py
 ```
 
 `TODO` と出る行が、まだ書いていない課題です。詰まったら [HINTS.md](../HINTS.md) を見てください。
 
-## WHILE 言語
+## WhileLang
 
 ```
 S ::= x := a
@@ -230,7 +230,7 @@ python3 whilei.py ../test/ifstmt.while
 | `interpret.py` | 仮想スタック命令の実行 (配布) |
 | `whilec.py` | コンパイラ (`.wat` / `--ast` / `--stack`) |
 | `whilei.py` | 仮想スタック機械で実行 (`--trace` で可視化) |
-| `test_day.py` | 進捗確認 |
+| `test_whilelang.py` | 進捗確認 |
 
 ## コマンド
 
@@ -240,4 +240,5 @@ python3 whilec.py --stack ../test/assign.while
 python3 whilec.py -o out.wat ../test/assign.while
 python3 whilei.py ../test/assign.while
 python3 whilei.py --trace ../test/assign.while
+python3 test_whilelang.py
 ```

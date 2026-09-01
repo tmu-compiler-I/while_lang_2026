@@ -108,6 +108,7 @@ static void check_run_file(const char *name, const char *fname, const int *want,
 }
 
 int main(void) {
+    init_console();
     printf("[構文解析]\n");
     check_parse("代入 i := i + 1", "i := i + 1;", "Add");
     check_parse("引き算 i := i - 1", "i := i - 1;", "Sub");
