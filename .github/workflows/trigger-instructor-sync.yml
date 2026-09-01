@@ -1,0 +1,22 @@
+name: Trigger instructor sync
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  dispatch:
+    if: github.repository == 'tmu-compiler-I/while_lang_2026'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch instructor sync
+        env:
+          GH_TOKEN: ${{ secrets.INSTRUCTOR_DISPATCH_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "INSTRUCTOR_DISPATCH_TOKEN is unset; instructor repo will sync on its schedule."
+            exit 0
+          fi
+          gh api --method POST \
+            repos/tmu-compiler-I/while_lang_2026_instructor/dispatches \
+            -f event_type=sync-baseline
