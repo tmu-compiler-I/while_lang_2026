@@ -1,0 +1,292 @@
+\documentclass[a4paper,11pt]{ltjsarticle}
+
+\usepackage[margin=20mm,headheight=18pt]{geometry}
+\usepackage{fontspec}
+\usepackage{luatexja-fontspec}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+
+\setmainfont{Noto Serif CJK JP}
+\setsansfont{Noto Sans CJK JP}
+\setmainjfont{Noto Serif CJK JP}
+\setsansjfont{Noto Sans CJK JP}
+\setmonofont{DejaVu Sans Mono}
+
+\definecolor{Ink}{HTML}{17233C}
+\definecolor{Blue}{HTML}{246BCE}
+\definecolor{LightBlue}{HTML}{EAF2FD}
+\definecolor{Orange}{HTML}{E87824}
+\definecolor{SoftGray}{HTML}{F3F5F7}
+\definecolor{CodeGray}{HTML}{4B5563}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=Blue,
+  urlcolor=Blue,
+  pdftitle={コンパイラ演習 2026 WhileLang から WebAssembly への翻訳},
+  pdfauthor={情報システム実験 I}
+}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{情報システム実験 I}
+\rhead{コンパイラ演習、伊澤侑祐}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\parindent}{1em}
+\setlength{\parskip}{0.25em}
+\setlist[itemize]{leftmargin=2em,itemsep=0.2em,topsep=0.3em}
+\setlist[enumerate]{leftmargin=2.2em,itemsep=0.25em,topsep=0.3em}
+
+\titleformat{\section}{\Large\bfseries\color{Ink}}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\large\bfseries\color{Blue}}{\thesubsection}{0.7em}{}
+
+\lstdefinestyle{course}{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\bfseries\color{Blue},
+  commentstyle=\color{CodeGray},
+  stringstyle=\color{Orange},
+  showstringspaces=false,
+  columns=fullflexible,
+  keepspaces=true,
+  frame=single,
+  rulecolor=\color{LightBlue},
+  backgroundcolor=\color{SoftGray},
+  xleftmargin=0.6em,
+  xrightmargin=0.6em,
+  aboveskip=0.45em,
+  belowskip=0.45em
+}
+\lstset{style=course}
+
+\newcommand{\term}[1]{\textbf{\color{Blue}#1}}
+\newcommand{\task}[1]{\textbf{\color{Orange}#1}}
+
+\begin{document}
+
+\begin{center}
+  {\LARGE\bfseries\color{Ink} コンパイラ演習 2026}\par
+  \vspace{0.25em}
+  {\large\color{Blue} WhileLang から WebAssembly への翻訳}\par
+  \vspace{0.45em}
+  {\small 情報システム実験 I　集中講義用レジュメ}
+\end{center}
+\vspace{0.4em}
+\noindent\color{Blue}\rule{\textwidth}{0.8pt}\color{Ink}
+
+この演習では、小さな命令型言語 WhileLang を WebAssembly テキスト形式 \texttt{.wat} へ翻訳するコンパイラを実装します。
+字句解析器と構文解析器は配布済みであり、構文木から仮想スタック命令への翻訳と、その命令列から WAT への出力を完成させる。目標は、コンパイラの各段階を見通しながら、算術演算、比較演算、while 文の意味を保つ翻訳を実装することである。
+
+\section{コンパイラの見取り図}
+
+コンパイラは、ある言語で書いたプログラムを別の言語へ翻訳する。翻訳前後で表現は変わるが、プログラムを実行した結果は同じでなければならない。今回の処理は次の五段階で進む。
+
+\begin{center}
+\begin{tikzpicture}[node distance=1cm,>=Latex]
+  \tikzset{box/.style={draw=Blue,rounded corners=2pt,fill=LightBlue,
+    minimum width=2.75cm,minimum height=0.82cm,align=center,font=\small}}
+  \node[box] (src) {WhileLang ソース};
+  \node[box,right=of src] (tok) {トークン列};
+  \node[box,right=of tok] (ast) {構文木 AST};
+  \node[box,below=0.65cm of ast] (stack) {仮想スタック命令};
+  \node[box,left=of stack] (wat) {WebAssembly WAT};
+  \draw[->,thick,Blue] (src) -- node[above,font=\scriptsize]{字句解析} (tok);
+  \draw[->,thick,Blue] (tok) -- node[above,font=\scriptsize]{構文解析} (ast);
+  \draw[->,thick,Blue] (ast) -- node[right,font=\scriptsize]{課題} (stack);
+  \draw[->,thick,Blue] (stack) -- node[above,font=\scriptsize]{課題} (wat);
+\end{tikzpicture}
+\end{center}
+
+変更するファイルは次の二つだけである。
+\begin{itemize}
+  \item Python: \path{virtual_stack.py} と \path{emit_wasm.py}
+  \item C: \path{virtual_stack.c} と \path{emit_wasm.c}
+\end{itemize}
+
+\textbf{最初に Python または C の一方を選んだら、途中で実装を混ぜない。}
+
+\section{仮想スタック機械}
+
+仮想スタック命令は、値を積む、値を取り出す、二つの値を演算する、といった小さな操作からなる。
+二項演算では、左辺を翻訳し、右辺を翻訳し、最後に演算命令を置く。この並びは後置記法に相当する。
+
+\begin{minipage}[t]{0.47\textwidth}
+\textbf{WhileLang}
+\begin{lstlisting}
+a := a * 2;
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\textwidth}
+\textbf{仮想スタック命令}
+\begin{lstlisting}
+rvalue a
+push   2
+*
+lpush  a
+\end{lstlisting}
+\end{minipage}
+
+\noindent\textbf{重要な区別}
+\begin{itemize}
+  \item \texttt{rvalue a} は変数 \texttt{a} の値を積む。
+  \item \texttt{lpush a} はスタック先頭の値を変数 \texttt{a} に格納する。
+  \item \texttt{-} では、下にある値を左辺、上にある値を右辺として計算する。
+\end{itemize}
+
+Wasm もスタック機械なので、仮想命令の多くは WAT の命令と一対一で対応する。
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+役割 & 仮想命令 & WAT \\
+\midrule
+定数を積む & \texttt{push n} & \texttt{i32.const n} \\
+変数を読む & \texttt{rvalue x} & \texttt{global.get \$x} \\
+変数へ書く & \texttt{lpush x} & \texttt{global.set \$x} \\
+加算 & \texttt{+} & \texttt{i32.add} \\
+符号付き比較 & \texttt{<} & \texttt{i32.lt\_s} \\
+出力 & \texttt{print} & \texttt{call \$print} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{課題と実装のヒント}
+
+\subsection{課題1 算術演算}
+
+\task{実装内容}は、\texttt{Sub / Mul / Div} の構文木を仮想命令へ翻訳することと、
+\texttt{Minus / Times} に対して \texttt{i32.sub / i32.mul} を出力することである。割り算の WAT 出力 \texttt{i32.div\_s} は配布済みである。
+
+\begin{lstlisting}[language=Python]
+case Add(lhs, rhs):
+    return compile_arith(lhs) + compile_arith(rhs) + [Plus()]
+\end{lstlisting}
+
+\texttt{Add} の場合を写し、末尾の命令を変えればよい。
+C では \texttt{ARITH\_ADD} と補助関数 \texttt{bin\_arith} を手本にする。
+引き算 \texttt{10 - 3} では 10、3 の順に積む。
+\texttt{print 3 - 10;} が \(-7\) になれば順序は正しい。
+
+\subsection{課題2 比較演算}
+
+\task{実装内容}は、\texttt{GT / GE / LE / EQ} を仮想命令へ翻訳し、対応する WAT を出力することである。\texttt{LT} が完成例になっている。
+
+\begin{center}
+\begin{tabular}{cc@{\qquad}cc}
+\toprule
+比較 & WAT & 比較 & WAT \\
+\midrule
+\texttt{>} & \texttt{i32.gt\_s} & \texttt{>=} & \texttt{i32.ge\_s} \\
+\texttt{<=} & \texttt{i32.le\_s} & \texttt{==} & \texttt{i32.eq} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+比較結果は真なら \texttt{1}、偽なら \texttt{0} になる。\texttt{print i > 1;} のように、比較式を直接出力して確認できる。
+
+\subsection{課題3 while}
+
+while 文には、条件を調べる場所 \texttt{test} と、ループを抜けた後の場所 \texttt{out} が必要である。
+
+\begin{minipage}[t]{0.36\textwidth}
+\begin{lstlisting}
+while i < 10 do
+  i := i + 1;
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.60\textwidth}
+\begin{lstlisting}
+label   L.0       # test
+rvalue i
+push    10
+<
+gofalse L.1      # out
+rvalue i
+push    1
++
+lpush   i
+goto    L.0
+label   L.1
+\end{lstlisting}
+\end{minipage}
+
+命令を組み立てる順序は、\texttt{LabelTest}、条件、\texttt{GoFalse}、本体、\texttt{GoTo}、\texttt{LabelOut} である。\texttt{GoFalse} は条件が 0 のとき \texttt{out} へ進み、\texttt{GoTo} は無条件に \texttt{test} へ戻る。ラベル名は各 while ごとに \texttt{gen\_label()} で新しく作れば、入れ子にも対応できる。
+
+WAT では \texttt{block} が脱出先を、内側の \texttt{loop} が反復先を表す。ここを出力する処理は配布済みである。
+
+\begin{lstlisting}
+(block $L.1
+  (loop $L.0
+    ... condition ...
+    i32.eqz
+    br_if $L.1
+    ... body ...
+    br $L.0
+  )
+)
+\end{lstlisting}
+
+\noindent\textbf{よくある失敗}
+\begin{itemize}
+  \item \texttt{GoFalse} と \texttt{GoTo} を逆にして、一度も回らない、または無限ループになる。
+  \item \texttt{LabelTest(test, out)} と \texttt{LabelOut(test, out)} に別の組を渡す。
+  \item while の本体が複数文なのに、入力側で \texttt{begin ... end} を使わない。
+\end{itemize}
+
+\section{デバッグと確認手順}
+
+不具合は、翻訳パイプラインの手前から順に調べる。AST が期待どおりならパーサは正しく、翻訳側を調べればよい。WAT を調べる前に \texttt{whilei} で仮想命令が正しく動くことを確認する。
+
+\begin{enumerate}
+  \item 構文木を見る。
+\begin{lstlisting}
+python3 whilec.py --ast ../test/arith.while
+\end{lstlisting}
+  \item 仮想命令列を見る。
+\begin{lstlisting}
+python3 whilec.py --stack ../test/arith.while
+\end{lstlisting}
+  \item 一命令ずつスタックと変数を追う。
+\begin{lstlisting}
+python3 whilei.py --trace ../test/arith.while
+\end{lstlisting}
+  \item 全テストを実行する。
+\begin{lstlisting}
+python3 test_whilelang.py
+\end{lstlisting}
+\end{enumerate}
+
+C 版では \texttt{./whilec}、\texttt{./whilei} に読み替え、全テストは \texttt{make test} で実行する。Windows では Python を \texttt{py -3} で起動できる。
+
+\begin{center}
+\begin{tabularx}{0.88\textwidth}{>{\ttfamily}l>{\ttfamily}lX}
+\toprule
+入力 & 期待する出力 & 確認する内容 \\
+\midrule
+assign.while & 3 & 配布状態と加算 \\
+arith.while & 7 8 4 23 & 減算、乗算、除算、優先順位 \\
+cmp.while & 1 1 0 1 1 0 & 比較結果 \\
+simple\_loop.while & 10 & 基本の while \\
+fact.while & 120 & while と乗算 \\
+loop.while & 入れ子の出力 & ラベルの組 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{着手順と発展課題}
+
+最初に配布状態で \texttt{assign.while} が \texttt{3} を出すことを確かめる。その後、課題1、課題2、課題3の順に進み、短いテストを通してから次へ移る。詰まったときはリポジトリ直下の \texttt{HINTS.md} を上から読む。
+
+時間が余ったら、\texttt{if P then S else S} を実装する。命令の順序は、条件、\texttt{IfStart}、then 節、\texttt{ElseOp}、else 節、\texttt{IfEnd} である。Python の命令名は \texttt{IfStart / ElseOp / IfEnd}、C では \texttt{I\_IF\_START / I\_ELSE / I\_IF\_END} である。
+
+\vfill
+\noindent\small\textbf{参照先}　\texttt{README.md}、\texttt{python/README.md}、\texttt{c/README.md}、\texttt{HINTS.md}
+
+\end{document}
