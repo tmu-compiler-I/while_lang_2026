@@ -19,12 +19,6 @@ from syntax import string_of_stmt
 from virtual_stack import compile_stack, format_code
 
 
-def compile_source(src: str):
-    tokens = tokenize(src)
-    ast = parse(tokens)
-    return ast, compile_stack(ast)
-
-
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="WhileLang to WebAssembly コンパイラ")
     ap.add_argument("source", help=".while ファイル")
@@ -40,14 +34,14 @@ def main(argv: list[str] | None = None) -> int:
 
     src = path.read_text(encoding="utf-8")
     try:
-        ast, code = compile_source(src)
+        ast = parse(tokenize(src))
+        if args.ast:
+            print(string_of_stmt(ast))
+            return 0
+        code = compile_stack(ast)
     except Exception as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
-
-    if args.ast:
-        print(string_of_stmt(ast))
-        return 0
 
     if args.stack:
         print(format_code(code), end="")

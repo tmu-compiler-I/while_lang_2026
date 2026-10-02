@@ -37,6 +37,10 @@ int main(int argc, char **argv) {
 
     char *src = xread_file(srcpath);
     Stmt *tree = parse(tokenize(src));
+    if (ast) {
+        printf("%s\n", string_of_stmt(tree));
+        return 0;
+    }
     clear_todo();
     Code code = compile_stack(tree);
     const char *todo = take_todo();
@@ -45,10 +49,6 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    if (ast) {
-        printf("%s\n", string_of_stmt(tree));
-        return 0;
-    }
     if (stack) {
         fputs(format_code(code), stdout);
         return 0;
