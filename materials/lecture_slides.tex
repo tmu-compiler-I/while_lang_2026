@@ -69,8 +69,8 @@
 
 \title{コンパイラ演習}
 \subtitle{WhileLang から WebAssembly への翻訳}
-\author{情報システム実験 I}
-\date{2026年度 集中講義}
+\author{情報システム実験 I (伊澤侑祐)}
+\date{}
 
 \begin{document}
 
@@ -90,22 +90,12 @@
 \end{frame}
 
 \begin{frame}{今日の到達点}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.58\textwidth}
-      \begin{itemize}\setlength\itemsep{0.7em}
-        \item コンパイラが行う\term{段階的な翻訳}を説明できる
-        \item 構文木を\term{仮想スタック命令}へ変換できる
-        \item 命令列を\term{WebAssembly テキスト形式}へ対応づけられる
-        \item テストとトレースを使って不具合の場所を絞れる
-      \end{itemize}
-    \column{0.36\textwidth}
-      \begin{block}{18分の流れ}
-        概説　4分\\[0.35em]
-        翻訳例　4分\\[0.35em]
-        課題とヒント　8分\\[0.35em]
-        着手手順　2分
-      \end{block}
-  \end{columns}
+  \begin{itemize}\setlength\itemsep{0.7em}
+  \item コンパイラが行う\term{段階的な翻訳}を説明できる
+  \item 構文木を\term{仮想スタック命令}へ変換できる
+  \item 命令列を\term{WebAssembly テキスト形式}へ対応づけられる
+  \item テストとトレースを使って不具合の場所を絞れる
+  \end{itemize}
   \note{目安 1分。課題のゴールはパーサ作成ではなく、後半の翻訳二段を完成させること。}
 \end{frame}
 
@@ -127,7 +117,7 @@
   \vspace{0.7cm}
 
   \begin{block}{正しさの基準}
-    入力プログラムを直接実行したときと、翻訳後のプログラムを実行したときに、同じ結果が得られること。
+    入力例の期待値と、翻訳した命令列を実行した結果が一致すること。WAT も同じ計算を表すように出力する。
   \end{block}
   \note{目安 1分。高速化より先に意味保存を強調する。今回は小さな言語なので対応関係が見える。}
 \end{frame}
@@ -162,6 +152,8 @@
 \end{frame}
 
 \begin{frame}[fragile]{式の翻訳は後置記法になる}
+  \small\texttt{a} の値が 3 のとき、\texttt{a := a * 2;} の実行後は 6。
+  \vspace{0.35em}
   \begin{columns}[T,onlytextwidth]
     \column{0.47\textwidth}
       \textbf{WhileLang}
@@ -188,29 +180,49 @@ push   2
 lpush  a
       \end{lstlisting}
       \small
-      左、右、演算子の順で並べる。演算子はスタック上の二つの値を消費し、結果を一つ積む。
+      \texttt{rvalue} は変数の値を積み、\texttt{lpush} は結果を変数へ保存する。
   \end{columns}
   \begin{block}{実装の型}
     \texttt{compile(lhs) + compile(rhs) + [operation]}
   \end{block}
-  \note{目安 2分。rvalueとlpushの違い、二項演算の順序を板書してもよい。}
+  \note{目安 2分。左、右、演算子の順を確認し、rvalueとlpushの違いを説明する。}
+\end{frame}
+
+\begin{frame}[fragile]{スタックを手で追う}
+  \texttt{print 10 - 3;} を仮想命令で実行する。スタックの\term{右端が先頭}。
+  \vspace{0.55em}
+  \begin{center}
+    \begin{tabular}{@{}lll@{}}
+      \textbf{実行した命令} & \textbf{実行後のスタック} & \textbf{起きたこと} \\ \hline
+      \texttt{push 10} & \texttt{[10]} & 10 を積む \\
+      \texttt{push 3} & \texttt{[10, 3]} & 3 を積む \\
+      \texttt{-} & \texttt{[7]} & 下の 10 から上の 3 を引く \\
+      \texttt{print} & \texttt{[]} & 7 を出力する
+    \end{tabular}
+  \end{center}
+  \vspace{0.45em}
+  \begin{block}{\texttt{--trace} の読み方}
+    各行の \texttt{stack=} は\term{その命令を実行する直前}の状態。次の行と比べて変化を追う。
+  \end{block}
+  \note{目安 1分。引き算の左右と、トレースが実行前の状態であることを示す。}
 \end{frame}
 
 \begin{frame}[fragile]{WebAssembly への対応}
   \begin{columns}[T,onlytextwidth]
     \column{0.52\textwidth}
-      \begin{tabular}{@{}ll@{}}
+      \begin{tabular}{@{}l@{\hspace{1.2em}}l@{}}
         \textbf{仮想命令} & \textbf{WAT} \\ \hline
         \texttt{push 2} & \texttt{i32.const 2} \\
         \texttt{rvalue a} & \texttt{global.get \$a} \\
         \texttt{lpush a} & \texttt{global.set \$a} \\
         \texttt{+} & \texttt{i32.add} \\
+        \texttt{*} & \texttt{i32.mul} \\
         \texttt{<} & \texttt{i32.lt\_s} \\
         \texttt{print} & \texttt{call \$print}
       \end{tabular}
       \vspace{0.65em}
 
-      \small Wasm もスタック機械なので、多くの命令はほぼ一対一で対応する。
+      \small \texttt{i32} は 32 ビット整数。Wasm もスタック機械なので、多くの命令はほぼ一対一で対応する。
     \column{0.44\textwidth}
       \begin{lstlisting}
 global.get $a
@@ -344,21 +356,21 @@ label   L.1
 \end{frame}
 
 \begin{frame}[fragile]{デバッグは手前から確認する}
-  \begin{enumerate}\setlength\itemsep{0.48em}
-    \item \term{構文木}を見る
-      \quad\texttt{python3 whilec.py --ast ../test/arith.while}
-    \item \term{仮想命令列}を見る
-      \quad\texttt{python3 whilec.py --stack ../test/arith.while}
-    \item \term{一命令ずつ実行}する
-      \quad\texttt{python3 whilei.py --trace ../test/arith.while}
-    \item \term{全テスト}を実行する
-      \quad\texttt{python3 test\_whilelang.py}
+  \begin{enumerate}\setlength\itemsep{0.34em}
+    \item \term{構文木}を見る\\[-0.1em]
+      {\small\texttt{python3 whilec.py --ast ../test/arith.while}}
+    \item \term{仮想命令列}を見る\\[-0.1em]
+      {\small\texttt{python3 whilec.py --stack ../test/arith.while}}
+    \item \term{一命令ずつ実行}する\\[-0.1em]
+      {\small\texttt{python3 whilei.py --trace ../test/arith.while}}
+    \item \term{進捗テスト}を実行する\\[-0.1em]
+      {\small\texttt{python3 test\_whilelang.py}}
   \end{enumerate}
   \vspace{0.45em}
   \begin{block}{切り分けの原則}
-    AST が正しければパーサを疑わない。WAT の前に \texttt{whilei} を通し、仮想命令の誤りを先に直す。
+    \texttt{--ast} は未実装でも表示できる。\texttt{whilei} が通ったら \texttt{whilec.py} で WAT を出し、演算命令を確認する。
   \end{block}
-  \note{目安 1分30秒。Cでは./whilecと./whilei、最後はmake testに読み替える。}
+  \note{目安 1分30秒。Cでは./whilecと./whilei、最後はmake test。発展ifのTODOは未着手なら想定内。}
 \end{frame}
 
 \begin{frame}{着手順と完了条件}
@@ -368,7 +380,7 @@ label   L.1
         \item Python または C を選ぶ
         \item 配布状態で \texttt{assign.while} が \texttt{3} を出すことを確認
         \item 課題1、課題2、課題3の順に実装
-        \item 各段階で対応するテストを実行
+        \item 各段階でテストし、WAT の出力も確認
       \end{enumerate}
     \column{0.38\textwidth}
       \begin{block}{主な期待値}
@@ -382,7 +394,7 @@ label   L.1
         \quad\texttt{120}
       \end{block}
   \end{columns}
-  \note{目安 1分。変更してよいファイルをもう一度限定し、短いテストから進める。}
+  \note{目安 1分。発展ifは任意。テスト全体の終了コードはif未実装でも非ゼロになるため、必須項目のOKを確認する。}
 \end{frame}
 
 \begin{frame}{まとめと発展課題}
